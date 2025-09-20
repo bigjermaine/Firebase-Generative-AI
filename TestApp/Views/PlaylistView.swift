@@ -71,18 +71,74 @@ struct PlaylistView: View {
                     }
                     
                     // Playlist output
-                    ScrollView {
-                        if !viewModel.responseData.isEmpty {
-                            Text(viewModel.responseData)
+                    if !viewModel.songs.isEmpty {
+                        VStack {
+                            List(viewModel.songs) { song in
+                                VStack(alignment: .leading) {
+                                    Text(song.title).fontWeight(.bold)
+                                    Text(song.artist).font(.caption)
+                                }
                                 .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(.white.opacity(0.1))
-                                .cornerRadius(20)
-                                .padding(.horizontal)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                                .animation(.easeInOut(duration: 0.5), value: viewModel.responseData)
+                                .listRowBackground(Color.clear)
+                            }
+                            .listStyle(.plain)
+                            .frame(height: 300) // Adjust height as needed
+                            .background(.white.opacity(0.1))
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+
+                            if viewModel.playlistURL == nil {
+                                if viewModel.isCreatingPlaylist {
+                                    ProgressView("Creating Playlist...")
+                                        .tint(.white)
+                                        .foregroundColor(.white)
+                                        .padding()
+                                } else {
+                                    Button(action: {
+                                        Task {
+                                            await viewModel.createAppleMusicPlaylist()
+                                        }
+                                    }) {
+                                        Text("Save to Apple Music")
+                                            .font(.headline)
+                                            .padding()
+                                            .frame(maxWidth: .infinity)
+                                            .background(Color.green.opacity(0.8))
+                                            .foregroundColor(.white)
+                                            .cornerRadius(20)
+                                            .shadow(radius: 5)
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            } else {
+                                if let url = viewModel.playlistURL {
+                                    Link(destination: url) {
+                                        Text("▶️ Open in Apple Music")
+                                            .font(.headline)
+                                            .padding()
+                                            .frame(maxWidth: .infinity)
+                                            .background(Color.blue.opacity(0.8))
+                                            .foregroundColor(.white)
+                                            .cornerRadius(20)
+                                            .shadow(radius: 5)
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
                         }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.5), value: viewModel.songs.count)
+
+                    } else if !viewModel.responseData.isEmpty && !viewModel.isGenerating {
+                        Text(viewModel.responseData)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.white.opacity(0.1))
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .animation(.easeInOut(duration: 0.5), value: viewModel.responseData)
                     }
                     
                     Spacer()

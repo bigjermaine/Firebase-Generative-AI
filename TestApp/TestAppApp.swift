@@ -7,15 +7,30 @@
 
 import SwiftUI
 import FirebaseCore
+import MusicKit
+
 @main
 struct TestAppApp: App {
     
+    @State private var musicAuthorizationStatus = MusicAuthorization.Status.notDetermined
+
     init() {
         FirebaseApp.configure()
     }
+
     var body: some Scene {
         WindowGroup {
             PlaylistView()
+                .onAppear(perform: requestMusicAuthorization)
+        }
+    }
+
+    private func requestMusicAuthorization() {
+        Task {
+            let status = await MusicAuthorization.request()
+            DispatchQueue.main.async {
+                self.musicAuthorizationStatus = status
+            }
         }
     }
 }
